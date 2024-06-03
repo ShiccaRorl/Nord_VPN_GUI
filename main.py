@@ -1,11 +1,7 @@
 import PySimpleGUI as sg
 import subprocess
 
-class CUI:
-    def __init__(self):
-        pass
-
-class GUI(CUI):
+class GUI:
     def __init__(self):
         self.window = sg.Window("Nord_VPN_GUI", self.get_layout(), resizable=True)
 
