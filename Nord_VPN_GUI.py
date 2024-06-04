@@ -1,11 +1,14 @@
-
-
 import PySimpleGUI as sg
 import subprocess
+import threading
+import time
 
 class GUI:
     def __init__(self):
         self.window = sg.Window("Nord_VPN_GUI", self.get_layout(), resizable=True)
+        self.running = True  # スレッドの停止を管理するためのフラグ
+        self.dns_thread = threading.Thread(target=self.restart_dns_service)
+        self.dns_thread.start()
 
     def get_layout(self):
         # 接続タブの内容
@@ -19,7 +22,7 @@ class GUI:
             [sg.Text("        ", size=(10, 1)), sg.Button("Obfuscatedサーバー", key="-Obfuscatedサーバー-")],
             [sg.Text("", size=(10, 1)), sg.Button("ログイン", key="-ログイン-"), sg.Button("切断", key="-切断-"), sg.Button("ログアウト", key="-ログアウト-")]
         ]
-        
+
         # オプションタブの内容
         オプションタブ = [
             [sg.Text("オプション")],
@@ -30,13 +33,13 @@ class GUI:
             [sg.Checkbox("混乱化", True, key="-混乱化-")],
             [sg.Checkbox("メッシュネット", True, key="-メッシュネット-")]
         ]
-        
+
         # ステータスタブの内容
         ステータス = [
             [sg.Text("ステータス")],
             [sg.Text("", key="-ステータス-", size=(50, 1))]
         ]
-        
+
         # 設定タブの内容
         設定タブ = [
             [sg.Text("設定")],
@@ -63,7 +66,7 @@ class GUI:
         ]
 
         return layout
-    
+
     def update_status(self, message):
         self.window['-ステータス-'].update(message)
 
@@ -75,6 +78,7 @@ class GUI:
         while True:
             event, values = self.window.read()
             if event == sg.WINDOW_CLOSED or event == '終了':
+                self.running = False  # スレッドを停止するためのフラグをセット
                 break
 
             # 各イベントに応じた処理
@@ -123,7 +127,7 @@ class GUI:
                 self.update_status("ログアウト中...")
                 result = self.run_command("nordvpn logout")
                 self.update_status(result)
-            
+
             # その他のオプションのイベント
             elif event == "-脅威防御ライト-":
                 print("脅威防御ライト", values[event])
@@ -168,7 +172,7 @@ class GUI:
                 self.update_status(f"{event} を実行中...")
                 result = self.run_command(f"sudo systemctl {event.split('_')[1]} nordvpnd")
                 self.update_status(result)
-            
+
             # ポート管理のイベント
             elif event == "ポートの開放":
                 port = values["port_add"]
@@ -186,6 +190,15 @@ class GUI:
                     self.update_status(result)
 
         self.window.close()
+        self.dns_thread.join()  # スレッドが終了するのを待つ
+
+    def restart_dns_service(self):
+        while self.running:
+            print("Restarting DNS service...")
+            self.update_status("Restarting DNS service...")
+            result = self.run_command("sudo service dns-clean restart")
+            self.update_status(result)
+            time.sleep(600)  # 10分（600秒）待つ
 
 # GUIのインスタンスを作成してイベントループを開始
 gui = GUI()
