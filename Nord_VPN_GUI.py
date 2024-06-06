@@ -7,8 +7,8 @@ class GUI:
     def __init__(self):
         self.window = sg.Window("Nord_VPN_GUI", self.get_layout(), resizable=True)
         self.running = True  # スレッドの停止を管理するためのフラグ
-        self.dns_thread = threading.Thread(target=self.restart_dns_service)
-        self.dns_thread.start()
+        #self.dns_thread = threading.Thread(target=self.restart_dns_service)
+        #self.dns_thread.start()
 
     def get_layout(self):
         # 接続タブの内容
@@ -71,6 +71,7 @@ class GUI:
         self.window['-ステータス-'].update(message)
 
     def run_command(self, command):
+        print(command)
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
         return result.stdout if result.returncode == 0 else result.stderr
 
