@@ -2,13 +2,12 @@ import PySimpleGUI as sg
 import subprocess
 import threading
 import time
+import pexpect
 
 class GUI:
     def __init__(self):
         self.window = sg.Window("Nord_VPN_GUI", self.get_layout(), resizable=True)
         self.running = True  # スレッドの停止を管理するためのフラグ
-        #self.dns_thread = threading.Thread(target=self.restart_dns_service)
-        #self.dns_thread.start()
 
     def get_layout(self):
         # 接続タブの内容
@@ -71,9 +70,15 @@ class GUI:
         self.window['-ステータス-'].update(message)
 
     def run_command(self, command):
-        print(command)
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
-        return result.stdout if result.returncode == 0 else result.stderr
+        if command.startswith("sudo"):
+            child = pexpect.spawn(command)
+            child.expect('password for your_username:')  # パスワードプロンプトを期待
+            child.sendline('your_password')  # パスワードを送信
+            child.wait()
+            return child.before.decode('utf-8')
+        else:
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            return result.stdout if result.returncode == 0 else result.stderr
 
     def get_events(self):
         while True:
@@ -191,15 +196,6 @@ class GUI:
                     self.update_status(result)
 
         self.window.close()
-        self.dns_thread.join()  # スレッドが終了するのを待つ
-
-    def restart_dns_service(self):
-        while self.running:
-            print("Restarting DNS service...")
-            self.update_status("Restarting DNS service...")
-            result = self.run_command("sudo service dns-clean restart")
-            self.update_status(result)
-            time.sleep(600)  # 10分（600秒）待つ
 
 # GUIのインスタンスを作成してイベントループを開始
 gui = GUI()
