@@ -6,8 +6,12 @@ import pexpect
 
 class GUI:
     def __init__(self):
-        self.window = sg.Window("Nord_VPN_GUI", self.get_layout(), resizable=True)
+        # ウィンドウの初期化時にfinalize=Trueを追加
+        self.window = sg.Window("Nord_VPN_GUI", self.get_layout(), resizable=True, finalize=True)
         self.running = True  # スレッドの停止を管理するためのフラグ
+
+        # アプリケーションの初期化時にオプションをすべてONに設定する
+        self.initial_setup()
 
     def get_layout(self):
         # 接続タブの内容
@@ -72,13 +76,29 @@ class GUI:
     def run_command(self, command):
         if command.startswith("sudo"):
             child = pexpect.spawn(command)
-            child.expect('password for your_username:')  # パスワードプロンプトを期待
-            child.sendline('your_password')  # パスワードを送信
+            child.expect('ban')  # パスワードプロンプトを期待
+            child.sendline('aniki1119')  # パスワードを送信
             child.wait()
             return child.before.decode('utf-8')
         else:
             result = subprocess.run(command, shell=True, capture_output=True, text=True)
             return result.stdout if result.returncode == 0 else result.stderr
+
+    def initial_setup(self):
+        options = [
+            ("-脅威防御ライト-", "nordvpn set threatprotectionlite on"),
+            ("-キルスイッチ-", "nordvpn set killswitch on"),
+            ("-自動接続-", "nordvpn set autoconnect on"),
+            ("-通知-", "nordvpn set notify on"),
+            ("-混乱化-", "nordvpn set obfuscate on"),
+            ("-メッシュネット-", "nordvpn set meshnet on"),
+        ]
+        for key, command in options:
+            self.window[key].update(True)  # チェックボックスをオンに設定
+            result = self.run_command(command)
+            print(f"{key} を設定: {result}")
+            self.update_status(result)
+            time.sleep(1)  # コマンド実行後少し待機
 
     def get_events(self):
         while True:
@@ -165,38 +185,53 @@ class GUI:
                 self.update_status("メッシュネットを設定中...")
                 result = self.run_command(f"nordvpn set meshnet {'on' if values[event] else 'off'}")
                 self.update_status(result)
-            elif event == "インストール":
-                install_command = values['-インストール-']
-                print("インストールコマンド:", install_command)
-                self.update_status("インストール中...")
-                result = self.run_command(install_command)
-                self.update_status(result)
 
-            # systemctlコマンドのイベント
-            elif event in ["systemctl_enable", "systemctl_start", "systemctl_stop", "systemctl_disable", "systemctl_status", "systemctl_restart"]:
-                print(f"{event} を実行")
-                self.update_status(f"{event} を実行中...")
-                result = self.run_command(f"sudo systemctl {event.split('_')[1]} nordvpnd")
+            # 設定タブのイベント
+            elif event == "systemctl_enable":
+                self.update_status("systemctl enable nordvpnd 実行中...")
+                result = self.run_command("sudo systemctl enable nordvpnd")
                 self.update_status(result)
-
-            # ポート管理のイベント
+            elif event == "systemctl_start":
+                self.update_status("systemctl start nordvpnd 実行中...")
+                result = self.run_command("sudo systemctl start nordvpnd")
+                self.update_status(result)
+            elif event == "systemctl_stop":
+                self.update_status("systemctl stop nordvpnd 実行中...")
+                result = self.run_command("sudo systemctl stop nordvpnd")
+                self.update_status(result)
+            elif event == "systemctl_disable":
+                self.update_status("systemctl disable nordvpnd 実行中...")
+                result = self.run_command("sudo systemctl disable nordvpnd")
+                self.update_status(result)
+            elif event == "systemctl_status":
+                self.update_status("systemctl status nordvpnd 実行中...")
+                result = self.run_command("sudo systemctl status nordvpnd")
+                self.update_status(result)
+            elif event == "systemctl_restart":
+                self.update_status("systemctl restart nordvpnd 実行中...")
+                result = self.run_command("sudo systemctl restart nordvpnd")
+                self.update_status(result)
             elif event == "ポートの開放":
-                port = values["port_add"]
-                if port:
-                    print(f"ポート {port} を開放")
-                    self.update_status(f"ポート {port} を開放中...")
-                    result = self.run_command(f"nordvpn whitelist add port {port}")
-                    self.update_status(result)
+                self.update_status("ポートの開放中...")
+                result = self.run_command(f"sudo ufw allow {values['port_add']}")
+                self.update_status(result)
             elif event == "ポートを閉じる":
-                port = values["port_remove"]
-                if port:
-                    print(f"ポート {port} を閉じる")
-                    self.update_status(f"ポート {port} を閉じる中...")
-                    result = self.run_command(f"nordvpn whitelist remove port {port}")
-                    self.update_status(result)
+                self.update_status("ポートを閉じる中...")
+                result = self.run_command(f"sudo ufw deny {values['port_remove']}")
+                self.update_status(result)
 
-        self.window.close()
+    def run(self):
+        # スレッドを作成して開始
+        event_thread = threading.Thread(target=self.get_events)
+        event_thread.start()
 
-# GUIのインスタンスを作成してイベントループを開始
+        # スレッドが停止するまで待機
+        while self.running:
+            time.sleep(1)
+
+        # スレッドが終了するのを待つ
+        event_thread.join()
+
+# GUIのインスタンスを作成して実行
 gui = GUI()
-gui.get_events()
+gui.run()
