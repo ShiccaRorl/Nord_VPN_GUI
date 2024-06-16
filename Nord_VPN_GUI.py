@@ -12,8 +12,8 @@ import pexpect
 class GUI:
     def __init__(self):
         # ウィンドウの初期化時にfinalize=Trueを追加
-        self.window = sg.Window("Nord_VPN_GUI", self.get_layout(), resizable=True, finalize=True)
-        self.running = True  # スレッドの停止を管理するためのフラグ
+        #self.window = sg.Window("Nord_VPN_GUI", self.get_layout(), resizable=True, finalize=True)
+        #self.running = True  # スレッドの停止を管理するためのフラグ
 
         # アプリケーションの初期化時にオプションをすべてONに設定する
         self.initial_setup()
@@ -107,13 +107,13 @@ class GUI:
 
     def get_events(self):
         while True:
-            event, values = self.window.read()
+            event, values = self.window.read("Nord_VPN_GUI", self.get_layout())
             if event == sg.WINDOW_CLOSED or event == '終了':
                 self.running = False  # スレッドを停止するためのフラグをセット
                 break
 
             # 各イベントに応じた処理
-            if event == "-最寄りのスタンダードサーバー-":
+            elif event == "-最寄りのスタンダードサーバー-":
                 print("最寄りのスタンダードサーバーに接続")
                 self.update_status("最寄りのスタンダードサーバーに接続中...")
                 result = self.run_command("nordvpn connect")
