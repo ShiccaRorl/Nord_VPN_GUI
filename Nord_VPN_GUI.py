@@ -1,3 +1,8 @@
+
+# 001 2024-06-16 これを基準に変更していきたい
+
+
+
 import PySimpleGUI as sg
 import subprocess
 import threading
