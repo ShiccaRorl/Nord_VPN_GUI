@@ -17,6 +17,7 @@ class GUI:
 
         # アプリケーションの初期化時にオプションをすべてONに設定する
         #self.initial_setup()
+        pass
 
     def get_layout(self):
         # 接続タブの内容
