@@ -16,7 +16,7 @@ class GUI:
         #self.running = True  # スレッドの停止を管理するためのフラグ
 
         # アプリケーションの初期化時にオプションをすべてONに設定する
-        self.initial_setup()
+        #self.initial_setup()
 
     def get_layout(self):
         # 接続タブの内容
@@ -39,7 +39,8 @@ class GUI:
             [sg.Checkbox("自動接続", True, key="-自動接続-")],
             [sg.Checkbox("通知", True, key="-通知-")],
             [sg.Checkbox("混乱化", True, key="-混乱化-")],
-            [sg.Checkbox("メッシュネット", True, key="-メッシュネット-")]
+            [sg.Checkbox("メッシュネット", True, key="-メッシュネット-")],
+            [sg.Button("設定")],
         ]
 
         # ステータスタブの内容
@@ -224,6 +225,9 @@ class GUI:
                 self.update_status("ポートを閉じる中...")
                 result = self.run_command(f"sudo ufw deny {values['port_remove']}")
                 self.update_status(result)
+
+            elif event == "設定":
+                self.initial_setup()
 
     def run(self):
         # スレッドを作成して開始
