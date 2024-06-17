@@ -18,9 +18,8 @@ class GUI:
         # アプリケーションの初期化時にオプションをすべてONに設定する
         self.initial_setup()
         
-
     def get_layout(self):
-        # 接続タブの内容
+        
         接続タブ = [
         [sg.Text("Nord_VPN_GUI", size=(15, 1))],
         [sg.Button("最寄りのスタンダードサーバー", key="-最寄りのスタンダードサーバー-")],
@@ -67,10 +66,12 @@ class GUI:
 
         layout = [
             [tab_group],
-            [ステータス]
+            [sg.Column(ステータス)]
         ]
 
         return sg.Window("Nord_VPN_GUI", layout, resizable=True, finalize=True)
+
+
 
     def run_command(command):
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
@@ -80,6 +81,10 @@ class GUI:
     def update_status(self, message):
         self.window['-ステータス-'].update(message)
 
+
+
+
+        """
     def run_command(self, command):
         if command.startswith("sudo"):
             child = pexpect.spawn(command)
@@ -90,6 +95,12 @@ class GUI:
         else:
             result = subprocess.run(command, shell=True, capture_output=True, text=True)
             return result.stdout if result.returncode == 0 else result.stderr
+        """
+
+
+
+
+
 
     def initial_setup(self):
         options = [
