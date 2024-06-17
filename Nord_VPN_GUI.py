@@ -19,7 +19,8 @@ class GUI:
         self.initial_setup()
         
     def get_layout(self):
-        
+
+            # 接続タブの内容
         接続タブ = [
         [sg.Text("Nord_VPN_GUI", size=(15, 1))],
         [sg.Button("最寄りのスタンダードサーバー", key="-最寄りのスタンダードサーバー-")],
@@ -29,8 +30,9 @@ class GUI:
         [sg.Button("Dedicated IPサーバー", key="-Dedicated_IPサーバー-")],
         [sg.Button("Obfuscatedサーバー", key="-Obfuscatedサーバー-")],
         [sg.Button("ログイン", key="-ログイン-"), sg.Button("切断", key="-切断-"), sg.Button("ログアウト", key="-ログアウト-")]
-        ]
+        ]   
 
+        # オプションタブの内容
         オプションタブ = [
         [sg.Text("オプション")],
         [sg.Checkbox("脅威防御ライト", True, key="-脅威防御ライト-")],
@@ -39,14 +41,16 @@ class GUI:
         [sg.Checkbox("通知", True, key="-通知-")],
         [sg.Checkbox("混乱化", True, key="-混乱化-")],
         [sg.Checkbox("メッシュネット", True, key="-メッシュネット-")],
-        [sg.Button("設定")],
+        [sg.Button("設定")]
         ]
 
+        # ステータスタブの内容
         ステータス = [
         [sg.Text("ステータス")],
         [sg.Text("", key="-ステータス-", size=(50, 1))]
         ]
 
+        # 設定タブの内容
         設定タブ = [
         [sg.Text("設定")],
         [sg.Button("インストール"), sg.Input("sh <(curl -sSf https://downloads.nordcdn.com/apps/linux/install.sh)", key='-インストール-', size=(50, 1))],
@@ -60,13 +64,15 @@ class GUI:
         [sg.Input("", key="port_remove"), sg.Button("ポートを閉じる")]
         ]
 
+        # タブグループの作成
         tab_group = sg.TabGroup([
             [sg.Tab('接続', 接続タブ), sg.Tab('オプション', オプションタブ), sg.Tab('設定', 設定タブ)]
         ])
 
+        # レイアウトにタブグループを追加
         layout = [
-            [tab_group],
-            [sg.Column(ステータス)]
+        [tab_group],
+        [sg.Column(ステータス)]
         ]
 
         return sg.Window("Nord_VPN_GUI", layout, resizable=True, finalize=True)
@@ -119,9 +125,11 @@ class GUI:
             time.sleep(1)  # コマンド実行後少し待機
 
     def get_events(self):
-        window = self.get_layout()
+        self.window = self.get_layout()
         while True:
-            event, values = window.read()
+            if event.startswith('-'):
+                self.window['-ステータス-'].update(f"Event: {event}")
+            event, values = self.window.read()
             if event == sg.WINDOW_CLOSED or event == '終了':
                 self.running = False  # スレッドを停止するためのフラグをセット
                 break
@@ -242,7 +250,7 @@ class GUI:
             elif event == "設定":
                 self.initial_setup()
         
-        window.close()
+        self.window.close()
 
     #def run(self):
         # スレッドを作成して開始
