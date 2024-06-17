@@ -93,64 +93,80 @@ class GUI:
             if event.startswith('-'):
                 self.update_status(f"Event: {event}")
 
+            # 各イベントに応じた処理
             elif event == "-最寄りのスタンダードサーバー-":
+                print("最寄りのスタンダードサーバーに接続")
                 self.update_status("最寄りのスタンダードサーバーに接続中...")
                 result = self.run_command("nordvpn connect")
                 self.update_status(result)
             elif event == "-P2Pサーバー-":
+                print("P2Pサーバーに接続")
                 self.update_status("P2Pサーバーに接続中...")
                 result = self.run_command("nordvpn connect P2P")
                 self.update_status(result)
             elif event == "-ダブルVPNサーバー-":
+                print("ダブルVPNサーバーに接続")
                 self.update_status("ダブルVPNサーバーに接続中...")
                 result = self.run_command("nordvpn connect Double_VPN")
                 self.update_status(result)
             elif event == "-Onion_Over_VPNサーバー-":
+                print("Onion Over VPNサーバーに接続")
                 self.update_status("Onion Over VPNサーバーに接続中...")
                 result = self.run_command("nordvpn connect Onion_Over_VPN")
                 self.update_status(result)
             elif event == "-Dedicated_IPサーバー-":
+                print("Dedicated IPサーバーに接続")
                 self.update_status("Dedicated IPサーバーに接続中...")
                 result = self.run_command("nordvpn connect Dedicated_IP")
                 self.update_status(result)
             elif event == "-Obfuscatedサーバー-":
+                print("Obfuscatedサーバーに接続")
                 self.update_status("Obfuscatedサーバーに接続中...")
                 result = self.run_command("nordvpn connect Obfuscated")
                 self.update_status(result)
             elif event == "-ログイン-":
+                print("ログイン")
                 self.update_status("ログイン中...")
                 result = self.run_command("nordvpn login")
                 self.update_status(result)
             elif event == "-切断-":
+                print("VPN切断")
                 self.update_status("VPN切断中...")
                 result = self.run_command("nordvpn disconnect")
                 self.update_status(result)
             elif event == "-ログアウト-":
+                print("ログアウト")
                 self.update_status("ログアウト中...")
                 result = self.run_command("nordvpn logout")
                 self.update_status(result)
 
             elif event == "-脅威防御ライト-":
+                print("脅威防御ライトを設定中...")
                 self.update_status("脅威防御ライトを設定中...")
                 result = self.run_command(f"nordvpn set threatprotectionlite {'on' if values[event] else 'off'}")
                 self.update_status(result)
             elif event == "-キルスイッチ-":
+                print("キルスイッチを設定中...")
                 self.update_status("キルスイッチを設定中...")
                 result = self.run_command(f"nordvpn set killswitch {'on' if values[event] else 'off'}")
                 self.update_status(result)
             elif event == "-自動接続-":
+                print("自動接続を設定中...")
                 self.update_status("自動接続を設定中...")
                 result = self.run_command(f"nordvpn set autoconnect {'on' if values[event] else 'off'}")
                 self.update_status(result)
             elif event == "-通知-":
+                print("通知を設定中...")
                 self.update_status("通知を設定中...")
                 result = self.run_command(f"nordvpn set notify {'on' if values[event] else 'off'}")
                 self.update_status(result)
             elif event == "-混乱化-":
+                print("混乱化を設定中...")
                 self.update_status("混乱化を設定中...")
                 result = self.run_command(f"nordvpn set obfuscate {'on' if values[event] else 'off'}")
                 self.update_status(result)
             elif event == "-メッシュネット-":
+                print("メッシュネットを設定中...")
                 self.update_status("メッシュネットを設定中...")
                 result = self.run_command(f"nordvpn set meshnet {'on' if values[event] else 'off'}")
                 self.update_status(result)
