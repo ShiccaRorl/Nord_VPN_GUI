@@ -7,6 +7,7 @@ class GUI:
     def __init__(self):
         self.window = sg.Window("Nord_VPN_GUI", self.get_layout(), resizable=True, finalize=True)
         self.running = True
+        self.init_system = self.check_init_system()
 
     def get_layout(self):
         接続タブ = [
@@ -18,7 +19,7 @@ class GUI:
             [sg.Button("Dedicated IPサーバー", key="-Dedicated_IPサーバー-")],
             [sg.Button("Obfuscatedサーバー", key="-Obfuscatedサーバー-")],
             [sg.Button("ログイン", key="-ログイン-"), sg.Button("切断", key="-切断-"), sg.Button("ログアウト", key="-ログアウト-")]
-        ]   
+        ]
 
         オプションタブ = [
             [sg.Text("オプション")],
@@ -28,12 +29,13 @@ class GUI:
             [sg.Checkbox("通知", True, key="-通知-")],
             [sg.Checkbox("混乱化", True, key="-混乱化-")],
             [sg.Checkbox("メッシュネット", True, key="-メッシュネット-")],
-            [sg.Button("設定")]
+            [sg.Button("全部設定")],
+            [sg.Button("全ての設定をオフにする", key="-RESET_SETTINGS-")],
         ]
 
         ステータス = [
             [sg.Text("ステータス")],
-            [sg.Text("", key="-ステータス-", size=(50, 1))]
+            [sg.Text("", key="-ステータス-", size=(60, 1))]
         ]
 
         設定タブ = [
@@ -61,8 +63,22 @@ class GUI:
         return layout
 
     def run_command(self, command):
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
-        return result.stdout if result.returncode == 0 else result.stderr
+        try:
+            print(f"Running command: {command}")  # デバッグ出力
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            print(f"Command result: {result.stdout if result.returncode == 0 else result.stderr}")  # デバッグ出力
+            return result.stdout if result.returncode == 0 else result.stderr
+        except Exception as e:
+            print(f"Command error: {e}")  # デバッグ出力
+            return str(e)
+
+    def check_init_system(self):
+        try:
+            with open('/proc/1/comm', 'r') as f:
+                init_system = f.read().strip()
+            return init_system
+        except Exception as e:
+            return str(e)
 
     def update_status(self, message):
         self.window['-ステータス-'].update(message)
@@ -129,6 +145,15 @@ class GUI:
                 self.update_status("ログイン中...")
                 result = self.run_command("nordvpn login")
                 self.update_status(result)
+                # URLを抽出して表示
+                url_start = result.find('https://')
+                if url_start != -1:
+                    url_end = result.find(' ', url_start)
+                    url = result[url_start:url_end].strip()
+                    self.window['-ログインURL-'].update(url)
+                    self.update_status(f"ブラウザでログインを完了してください: {url}")
+                else:
+                    self.update_status("ログインURLを取得できませんでした。")
             elif event == "-切断-":
                 print("VPN切断")
                 self.update_status("VPN切断中...")
@@ -139,6 +164,11 @@ class GUI:
                 self.update_status("ログアウト中...")
                 result = self.run_command("nordvpn logout")
                 self.update_status(result)
+            elif event == "-コピー-":
+                # ログインURLをクリップボードにコピー
+                url = values['-ログインURL-']
+                sg.clipboard_set(url)
+                self.update_status("ログインURLをクリップボードにコピーしました")
 
             elif event == "-脅威防御ライト-":
                 print("脅威防御ライトを設定中...")
@@ -170,6 +200,38 @@ class GUI:
                 self.update_status("メッシュネットを設定中...")
                 result = self.run_command(f"nordvpn set meshnet {'on' if values[event] else 'off'}")
                 self.update_status(result)
+            elif event == "全部設定":
+                print("設定中...")
+                self.update_status("設定中...")
+                options = [
+                    ("-脅威防御ライト-", "nordvpn set threatprotectionlite"),
+                    ("-キルスイッチ-", "nordvpn set killswitch"),
+                    ("-自動接続-", "nordvpn set autoconnect"),
+                    ("-通知-", "nordvpn set notify"),
+                    ("-混乱化-", "nordvpn set obfuscate"),
+                    ("-メッシュネット-", "nordvpn set meshnet"),
+                ]
+                for key, command in options:
+                    state = 'on' if values[key] else 'off'
+                    result = self.run_command(f"{command} {state}")
+                    self.update_status(result)
+                    time.sleep(1)
+
+            elif event == "-RESET_SETTINGS-":
+                print("全ての設定をオフにする")
+                self.update_status("全ての設定をオフにしています...")
+                commands = [
+                    "nordvpn set autoconnect off",
+                    "nordvpn set killswitch off",
+                    "nordvpn set threatprotectionlite off",
+                    "nordvpn set notify off",
+                    "nordvpn set obfuscate off",
+                    "nordvpn set meshnet off"
+                ]
+                for command in commands:
+                    result = self.run_command(command)
+                    self.update_status(result)
+                    time.sleep(1)
 
             # 設定タブのイベント
             elif event == "systemctl_enable":
@@ -189,9 +251,13 @@ class GUI:
                 result = self.run_command("systemctl disable nordvpnd")
                 self.update_status(result)
             elif event == "systemctl_status":
-                self.update_status("systemctl status nordvpnd 実行中...")
-                result = self.run_command("systemctl status nordvpnd")
-                self.update_status(result)
+                if self.init_system == 'systemd':
+                    result = self.run_command("systemctl status nordvpnd")
+                elif self.init_system == 'init':
+                    result = self.run_command("service nordvpnd status")
+                else:
+                    result = "Unsupported init system: {}".format(self.init_system)
+                self.update_status(result)        
             elif event == "systemctl_restart":
                 self.update_status("systemctl restart nordvpnd 実行中...")
                 result = self.run_command("systemctl restart nordvpnd")
@@ -209,5 +275,5 @@ class GUI:
 
 if __name__ == "__main__":
     gui = GUI()
-    threading.Thread(target=gui.initial_setup).start()
+    #threading.Thread(target=gui.initial_setup).start()
     gui.get_events()
