@@ -3,8 +3,8 @@
 # NordVPN Control Script
 
 function show_help() {
-    echo "Usage: $0 {connect|disconnect|status|set|get|list|current|reconnect|logout|help}"
-    echo "  connect [country]     Connect to VPN. Optionally specify country."
+    echo "Usage: $0 {connect|disconnect|status|set|get|list|current|reconnect|logout|set_all_on|help}"
+    echo "  connect [country|type] Connect to VPN. Optionally specify country or type (p2p, onion)."
     echo "  disconnect            Disconnect from VPN."
     echo "  status                Show VPN connection status."
     echo "  set <setting> <value> Set a NordVPN configuration (e.g., autoconnect, killswitch)."
@@ -13,12 +13,19 @@ function show_help() {
     echo "  current               Show the current connected server information."
     echo "  reconnect             Reconnect to the last connected server."
     echo "  logout                Log out from NordVPN."
+    echo "  set_all_on            Set all available options to 'on'."
     echo "  help                  Show this help message."
 }
 
 function connect_vpn() {
     if [ -n "$1" ]; then
-        nordvpn connect "$1"
+        if [ "$1" == "p2p" ]; then
+            nordvpn connect p2p
+        elif [ "$1" == "onion" ]; then
+            nordvpn connect onion_over_vpn
+        else
+            nordvpn connect "$1"
+        fi
     else
         nordvpn connect
     fi
@@ -41,7 +48,7 @@ function set_option() {
     fi
 }
 
-function get_option() {
+function get_option()() {
     if [ -n "$1" ]; then
         nordvpn settings | grep "$1"
     else
@@ -54,16 +61,28 @@ function list_servers() {
     nordvpn countries
 }
 
-function current_server() {
+function current_server()() {
     nordvpn status | grep 'Current server'
 }
 
-function reconnect_vpn() {
+function reconnect_vpn()() {
     nordvpn reconnect
 }
 
-function logout_vpn() {
+function logout_vpn()() {
     nordvpn logout
+}
+
+function set_all_options_on()() {
+    # Enabling all available options to 'on'
+    nordvpn set autoconnect on
+    nordvpn set killswitch on
+    nordvpn set cybersec on
+    nordvpn set obfuscate on
+    nordvpn set notify on
+    nordvpn set ipv6 on
+    nordvpn set dns 103.86.96.100 103.86.99.100
+    echo "All options have been set to 'on'."
 }
 
 case "$1" in
@@ -94,6 +113,9 @@ case "$1" in
     logout)
         logout_vpn
         ;;
+    set_all_on)
+        set_all_options_on
+        ;;
     help)
         show_help
         ;;
@@ -102,3 +124,11 @@ case "$1" in
         show_help
         ;;
 esac
+
+# Example usage for connecting to VPN:
+# To connect to the best available server: ./scriptname connect
+# To connect to a specific country: ./scriptname connect USA
+# To connect to a P2P server: ./scriptname connect p2p
+# To connect to an Onion Over VPN server: ./scriptname connect onion
+
+# To set all options to 'on': ./scriptname set_all_on
