@@ -48,7 +48,7 @@ function set_option() {
     fi
 }
 
-function get_option()() {
+function get_option() {
     if [ -n "$1" ]; then
         nordvpn settings | grep "$1"
     else
@@ -61,19 +61,19 @@ function list_servers() {
     nordvpn countries
 }
 
-function current_server()() {
+function current_server() {
     nordvpn status | grep 'Current server'
 }
 
-function reconnect_vpn()() {
+function reconnect_vpn() {
     nordvpn reconnect
 }
 
-function logout_vpn()() {
+function logout_vpn() {
     nordvpn logout
 }
 
-function set_all_options_on()() {
+function set_all_options_on() {
     # Enabling all available options to 'on'
     nordvpn set autoconnect on
     nordvpn set killswitch on
