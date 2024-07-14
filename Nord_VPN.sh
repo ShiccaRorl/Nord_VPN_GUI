@@ -4,7 +4,7 @@
 
 function show_help() {
     echo "Usage: $0 {connect|disconnect|status|set|get|list|current|reconnect|logout|set_all_on|help}"
-    echo "  connect [country|type] Connect to VPN. Optionally specify country or type (p2p, onion)."
+    echo "  connect [country|type] Connect to VPN. Optionally specify country or type (p2p, onion, dedicated_ip, double_vpn, obfuscated)."
     echo "  disconnect            Disconnect from VPN."
     echo "  status                Show VPN connection status."
     echo "  set <setting> <value> Set a NordVPN configuration (e.g., autoconnect, killswitch)."
@@ -19,13 +19,26 @@ function show_help() {
 
 function connect_vpn() {
     if [ -n "$1" ]; then
-        if [ "$1" == "p2p" ]; then
-            nordvpn connect p2p
-        elif [ "$1" == "onion" ]; then
-            nordvpn connect onion_over_vpn
-        else
-            nordvpn connect "$1"
-        fi
+        case "$1" in
+            p2p)
+                nordvpn connect p2p
+                ;;
+            onion)
+                nordvpn connect onion_over_vpn
+                ;;
+            dedicated_ip)
+                nordvpn connect dedicated_ip
+                ;;
+            double_vpn)
+                nordvpn connect double_vpn
+                ;;
+            obfuscated)
+                nordvpn connect obfuscated
+                ;;
+            *)
+                nordvpn connect "$1"
+                ;;
+        esac
     else
         nordvpn connect
     fi
@@ -130,5 +143,8 @@ esac
 # To connect to a specific country: ./scriptname connect USA
 # To connect to a P2P server: ./scriptname connect p2p
 # To connect to an Onion Over VPN server: ./scriptname connect onion
+# To connect to a dedicated IP server: ./scriptname connect dedicated_ip
+# To connect to a Double VPN server: ./scriptname connect double_vpn
+# To connect to an obfuscated server: ./scriptname connect obfuscated
 
 # To set all options to 'on': ./scriptname set_all_on
